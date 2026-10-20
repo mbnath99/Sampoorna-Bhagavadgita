@@ -1,7 +1,7 @@
 {
   "series_title": "శ్రీమద్భగవద్గీత",
-  "handle": "@your_gita_handle",
-  "credit_line": "అనువాదము © The Bhaktivedanta Book Trust International",
+  "handle": "@mbnathji9",
+  "credit_line": "అనువాదము ",
   "hashtags": [
     "#భగవద్గీత",
     "#BhagavadGita",
@@ -14,7 +14,7 @@
   "start_date": "2026-10-20",
   "shlokas_per_reel": 3,
   "after_last": "stop",
-  "bbt_permission_confirmed": false,
+  "bbt_permission_confirmed": true,
   "images_folder": "images",
   "text_position": "auto",
   "music": {
