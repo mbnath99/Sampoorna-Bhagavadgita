@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="te">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>నేటి పద్యం</title>
+<meta name="theme-color" content="#3e0e12">
+<style>
+  @font-face { font-family: "Noto Sans Telugu"; src: url("fonts/NotoSansTelugu.ttf") format("truetype"); font-weight: 100 900; font-display: swap; }
+  @font-face { font-family: "Suravaram"; src: url("fonts/Suravaram.ttf") format("truetype"); font-display: swap; }
+  :root {
+    --bg: #1a0507; --bg2: #3e0e12; --gold: #e9b85c; --cream: #fff4dc; --dim: #e6d2b8; --muted: #b89c80;
+    --card: rgba(255,255,255,0.05); --line: rgba(233,184,92,0.35); --wa: #1fa855; --fb: #1877f2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: radial-gradient(120% 60% at 50% 0%, var(--bg2), var(--bg) 70%) fixed, var(--bg);
+    color: var(--cream); font-family: "Noto Sans Telugu", system-ui, sans-serif; line-height: 1.6;
+    padding: 16px 16px 40px; min-height: 100vh;
+  }
+  main { max-width: 560px; margin: 0 auto; }
+  header { text-align: center; margin: 8px 0 16px; }
+  .series { font-family: "Suravaram", serif; color: var(--gold); font-size: 2.1rem; line-height: 1.2; margin: 0; }
+  .meta { color: var(--muted); font-size: .95rem; margin-top: 2px; }
+  video, .poster { width: 100%; border-radius: 14px; border: 1px solid var(--line); background: #000; display: block; }
+  video { aspect-ratio: 9 / 16; max-height: 70vh; object-fit: contain; }
+  .actions { display: grid; gap: 10px; margin: 16px 0; }
+  button, .btn {
+    appearance: none; border: 0; border-radius: 12px; padding: 14px 16px; font: inherit; font-weight: 600;
+    font-size: 1.05rem; cursor: pointer; display: flex; align-items: center; gap: 12px; text-decoration: none;
+    color: #fff; width: 100%; text-align: left; min-height: 56px;
+  }
+  button:disabled { opacity: .6; cursor: progress; }
+  .primary { background: var(--wa); }
+  .secondary { background: var(--card); border: 1px solid var(--line); color: var(--cream); }
+  .btn small, button small { display: block; font-weight: 400; font-size: .82rem; opacity: .85; }
+  .ico { font-size: 1.5rem; width: 28px; text-align: center; flex: none; }
+  .hint { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: .92rem; color: var(--dim); }
+  .hint b { color: var(--gold); }
+  .hint ol { margin: 6px 0 0; padding-left: 20px; }
+  .text { margin-top: 18px; padding: 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+  .padyam { font-weight: 700; font-size: 1.15rem; text-align: center; white-space: pre-line; }
+  .label { font-family: "Suravaram", serif; color: var(--gold); text-align: center; font-size: 1.4rem; margin: 12px 0 2px; }
+  .bhavam { color: var(--dim); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--gold); color: #2a0a0a;
+    padding: 10px 18px; border-radius: 999px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .fallback { display: none; }
+  .err { color: #ffb4a8; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 class="series" id="series">సుమతీ శతకము</h1>
+    <div class="meta" id="meta">…</div>
+  </header>
+
+  <video id="video" controls playsinline preload="metadata"></video>
+
+  <div class="actions" id="shareActions">
+    <button class="primary" id="shareVideo"><span class="ico">▶</span><span>వీడియో షేర్ చేయండి<small>WhatsApp స్టేటస్ · Facebook</small></span></button>
+    <button class="secondary" id="shareImage"><span class="ico">🖼</span><span>ఫోటో + భావం షేర్ చేయండి<small>WhatsApp కమ్యూనిటీ · గ్రూపులు</small></span></button>
+    <button class="secondary" id="copyText"><span class="ico">⧉</span><span>పద్యం + భావం కాపీ చేయండి<small>ఎక్కడైనా పేస్ట్ చేయడానికి</small></span></button>
+  </div>
+
+  <div class="actions fallback" id="fallbackActions">
+    <a class="btn secondary" id="dlVideo" download><span class="ico">⬇</span><span>వీడియో డౌన్‌లోడ్<small>తర్వాత WhatsApp / Facebook లో పెట్టండి</small></span></a>
+    <a class="btn secondary" id="dlImage" download><span class="ico">⬇</span><span>ఫోటో డౌన్‌లోడ్</span></a>
+    <a class="btn primary" id="waText" target="_blank" rel="noopener"><span class="ico">✆</span><span>WhatsApp లో టెక్స్ట్ పంపండి</span></a>
+  </div>
+
+  <div class="hint">
+    <b>రెండు ట్యాప్‌లు:</b>
+    <ol>
+      <li><b>స్టేటస్:</b> "వీడియో షేర్" → WhatsApp → <b>My status</b></li>
+      <li><b>కమ్యూనిటీ:</b> "ఫోటో + భావం" → WhatsApp → మీ కమ్యూనిటీ గ్రూప్</li>
+      <li><b>Facebook:</b> "వీడియో షేర్" → Facebook → Post / Reel</li>
+    </ol>
+  </div>
+
+  <section class="text">
+    <div class="padyam" id="padyam"></div>
+    <div class="label">భావం</div>
+    <div class="bhavam" id="bhavam"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const toast = (msg) => { const t = $("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2200); };
+  let data;
+  try {
+    data = await (await fetch("today.json", { cache: "no-store" })).json();
+  } catch (e) {
+    document.querySelector("main").innerHTML = '<p class="err">ఈరోజు పద్యం ఇంకా సిద్ధం కాలేదు. కొద్దిసేపటి తర్వాత మళ్ళీ చూడండి.</p>';
+    return;
+  }
+  $("series").textContent = data.title;
+  const d = new Date(data.date + "T00:00:00");
+  $("meta").textContent = `పద్యం ${data.n} · ${d.toLocaleDateString("te-IN", { day: "numeric", month: "long", year: "numeric" })}`;
+  $("video").src = data.video; $("video").poster = data.image;
+  $("padyam").textContent = data.padyam.join("\n");
+  $("bhavam").textContent = data.bhavam;
+  const text = data.whatsapp;
+
+  const fileCache = {};
+  async function getFile(url, name, type) {
+    if (!fileCache[url]) {
+      const blob = await (await fetch(url)).blob();
+      fileCache[url] = new File([blob], name, { type });
+    }
+    return fileCache[url];
+  }
+  const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [new File(["x"], "x.jpg", { type: "image/jpeg" })] }));
+  if (!canShareFiles) {
+    $("shareActions").querySelectorAll("#shareVideo, #shareImage").forEach((b) => b.style.display = "none");
+    $("fallbackActions").style.display = "grid";
+    $("dlVideo").href = data.video; $("dlImage").href = data.image;
+    $("waText").href = "https://wa.me/?text=" + encodeURIComponent(text);
+  }
+
+  async function share(btn, url, name, type) {
+    btn.disabled = true;
+    try {
+      const file = await getFile(url, name, type);
+      try { await navigator.clipboard.writeText(text); } catch (_) {}
+      await navigator.share({ files: [file], text });
+    } catch (e) {
+      if (e && e.name !== "AbortError") toast("షేర్ కాలేదు — డౌన్‌లోడ్ చేసి పెట్టండి");
+    } finally { btn.disabled = false; }
+  }
+  $("shareVideo").onclick = (e) => share(e.currentTarget, data.video, `padyam-${data.n}.mp4`, "video/mp4");
+  $("shareImage").onclick = (e) => share(e.currentTarget, data.image, `padyam-${data.n}.jpg`, "image/jpeg");
+  $("copyText").onclick = async () => {
+    try { await navigator.clipboard.writeText(text); toast("కాపీ అయింది ✓"); }
+    catch (_) { toast("కాపీ కాలేదు"); }
+  };
+  // warm the cache so the share sheet opens instantly
+  if (canShareFiles) { getFile(data.image, `padyam-${data.n}.jpg`, "image/jpeg"); }
+})();
+</script>
+</body>
+</html>

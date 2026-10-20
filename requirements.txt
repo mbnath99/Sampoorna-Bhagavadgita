@@ -1,0 +1,6 @@
+pillow>=10.0
+numpy>=1.26
+scipy>=1.11
+requests>=2.31
+google-api-python-client>=2.100
+google-auth>=2.23

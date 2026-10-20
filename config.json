@@ -1,0 +1,48 @@
+{
+  "series_title": "శ్రీమద్భగవద్గీత",
+  "handle": "@your_gita_handle",
+  "credit_line": "అనువాదము © The Bhaktivedanta Book Trust International",
+  "hashtags": [
+    "#భగవద్గీత",
+    "#BhagavadGita",
+    "#Gita",
+    "#Krishna",
+    "#శ్రీకృష్ణ",
+    "#GitaTelugu",
+    "#Telugu"
+  ],
+  "start_date": "2026-10-20",
+  "shlokas_per_reel": 3,
+  "after_last": "stop",
+  "bbt_permission_confirmed": false,
+  "images_folder": "images",
+  "text_position": "auto",
+  "music": {
+    "folder": "music",
+    "source": "auto",
+    "volume": 0.5,
+    "under_voice": 0.22
+  },
+  "voice": {
+    "read": "shloka_and_meaning",
+    "announce": true,
+    "model": "bulbul:v4-flash",
+    "speaker": "tarun_te_narration",
+    "language": "te-IN",
+    "pace": 0.95
+  },
+  "own_voice": {
+    "enabled": true,
+    "folder": "voice",
+    "includes_intro": false,
+    "cleanup": true
+  },
+  "max_video_seconds": 175,
+  "post_to": {
+    "instagram": true,
+    "youtube": true
+  },
+  "youtube_privacy": "public",
+  "graph_api_version": "v23.0",
+  "require_proofread": true
+}
