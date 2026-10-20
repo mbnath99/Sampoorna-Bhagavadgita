@@ -3,3 +3,4 @@ date,padyam,platform,status,detail,logged_at_utc
 2026-10-20,1,youtube,ok,https://youtube.com/shorts/Kkfamiun8VQ,2026-10-20T12:58:24+00:00
 2026-10-20,1,instagram,error,"{""error"":{""message"":""Invalid OAuth access token - Cannot parse access token"",""type"":""OAuthException"",""code"":190,""fbtrace_id"":""AQUbnn-d94rSqDlSs61i6NU""}}",2026-10-20T13:07:54+00:00
 2026-10-21,1,instagram,error,"{""error"":{""message"":""Invalid OAuth access token - Cannot parse access token"",""type"":""OAuthException"",""code"":190,""fbtrace_id"":""AtvOGBCY7Ni81Rkj8JVqJg_""}}",2026-10-20T21:38:07+00:00
+2026-10-21,1,instagram,error,"{""error"":{""message"":""Unsupported post request. Object with ID '1354477073255942' does not exist, cannot be loaded due to missing permissions, or does not support this operation"",""type"":""IGApiException"",""code"":100,""error_subcode"":33,""fbtrace_id"":""ATl2Y_M4WkJ5pWRKyieYpCj""}}",2026-10-20T21:55:52+00:00
