@@ -1,0 +1,119 @@
+name: Daily Gita reel
+
+on:
+  schedule:
+    - cron: "30 0 * * *"       # 00:30 UTC = 06:00 IST (GitHub may start it up to ~30 min late)
+  workflow_dispatch:
+    inputs:
+      serial:
+        description: "Post a specific reel number (serial) (leave empty for today's)"
+        required: false
+      only:
+        description: "Only these platforms, e.g. instagram,youtube (empty = all enabled in config.json)"
+        required: false
+      dry_run:
+        description: "Build everything but don't post"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-gita
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest moves to 26.04 from Oct 2026
+    timeout-minutes: 60
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the content token
+        env:
+          CONTENT_TOKEN: ${{ secrets.CONTENT_TOKEN }}
+        run: |
+          if [ -z "$CONTENT_TOKEN" ]; then
+            echo "::error title=CONTENT_TOKEN secret missing::Your translations, images and voice are in the private repository ${{ vars.CONTENT_REPO || 'reels-content' }}. Add a read-only access token for it as the secret CONTENT_TOKEN (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - name: Fetch your private content
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/${{ vars.CONTENT_REPO || 'reels-content' }}
+          token: ${{ secrets.CONTENT_TOKEN }}
+          path: _content
+          persist-credentials: false
+
+      - name: Put the content in place
+        run: |
+          if [ ! -d _content/gita ]; then
+            echo "::error title=Folder 'gita' not found::The private content repository has no 'gita' folder at its top level. Upload the 'gita' folder from reels-content.zip."
+            exit 1
+          fi
+          cp -a _content/gita/. .
+          rm -rf _content
+          ls data
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install ffmpeg and Telugu text shaping
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg libraqm0
+          pip install -q -r requirements.txt
+          python -c "from PIL import features; assert features.check('raqm'), 'Telugu shaping (raqm) missing'"
+
+      - name: Render today's reel (Sarvam voice)
+        id: build
+        env:
+          SARVAM_API_KEY: ${{ secrets.SARVAM_API_KEY }}
+        run: python daily.py ${{ inputs.serial && format('--serial {0}', inputs.serial) || '' }}
+
+      - uses: actions/configure-pages@v6
+        if: steps.build.outputs.post == 'true'
+
+      - uses: actions/upload-pages-artifact@v5
+        if: steps.build.outputs.post == 'true'
+        with:
+          path: site
+
+      - name: Publish share page (GitHub Pages)
+        id: deploy
+        if: steps.build.outputs.post == 'true'
+        uses: actions/deploy-pages@v5
+
+      - name: Post to Instagram / YouTube / reminders
+        if: steps.build.outputs.post == 'true'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: >
+          python publish.py --site-url "${{ steps.deploy.outputs.page_url }}"
+          ${{ inputs.only && format('--only {0}', inputs.only) || '' }}
+          ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Save posting log (also keeps the daily schedule alive)
+        if: always() && steps.build.outputs.post == 'true'
+        run: |
+          git config user.name "gita-bot"
+          git config user.email "gita-bot@users.noreply.github.com"
+          git add state/posted_log.csv 2>/dev/null || true
+          git commit -m "Posted Gita reel ${{ steps.build.outputs.n }} on ${{ steps.build.outputs.date }}" || echo "nothing to commit"
+          git push || echo "push failed (log not saved)"
