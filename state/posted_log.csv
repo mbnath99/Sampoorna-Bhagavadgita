@@ -1,0 +1,3 @@
+date,padyam,platform,status,detail,logged_at_utc
+2026-10-20,1,instagram,error,"{""error"":{""message"":""Invalid OAuth access token - Cannot parse access token"",""type"":""OAuthException"",""code"":190,""fbtrace_id"":""AV-R_u3DNjwkJ9R2bPomwOv""}}",2026-10-20T12:58:22+00:00
+2026-10-20,1,youtube,ok,https://youtube.com/shorts/Kkfamiun8VQ,2026-10-20T12:58:24+00:00
