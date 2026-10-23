@@ -116,10 +116,16 @@ def with_alpha(img, a):
 
 # ------------------------------------------------------------------ background image
 def pick_image(serial, cfg):
+    """The image named by the reel number (1.jpg, 01.jpg, 001.jpg, 'reel 12.png' -> reel 12).
+    Reels without their own image reuse the numbered images in number order (1, 2, 3 ... 10, 11), cycling."""
     d = os.path.join(HERE, cfg.get("images_folder", "images"))
-    imgs = sorted(f for f in os.listdir(d) if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))) if os.path.isdir(d) else []
+    imgs = [f for f in os.listdir(d) if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))] if os.path.isdir(d) else []
     if not imgs:
         return None
+    exact = sorted(f for f in imgs if voice_number(f) == serial)
+    if exact:
+        return os.path.join(d, exact[0])
+    imgs.sort(key=lambda f: (voice_number(f) is None, voice_number(f) or 0, f.lower()))
     return os.path.join(d, imgs[(serial - 1) % len(imgs)])
 
 def placeholder_bg():
@@ -157,6 +163,11 @@ def text_position(bg, cfg):
     return "top" if top < bottom * 0.85 else "bottom"
 
 # ------------------------------------------------------------------ static chrome (title, badge, footer)
+CHAPTER_NAMES = ["అర్జునవిషాద యోగము", "సాంఖ్య యోగము", "కర్మ యోగము", "జ్ఞానకర్మసన్న్యాస యోగము", "కర్మసన్న్యాస యోగము",
+    "ఆత్మసంయమ యోగము", "జ్ఞానవిజ్ఞాన యోగము", "అక్షరబ్రహ్మ యోగము", "రాజవిద్యారాజగుహ్య యోగము", "విభూతి యోగము",
+    "విశ్వరూపసందర్శన యోగము", "భక్తి యోగము", "క్షేత్రక్షేత్రజ్ఞవిభాగ యోగము", "గుణత్రయవిభాగ యోగము",
+    "పురుషోత్తమప్రాప్తి యోగము", "దైవాసురసంపద్విభాగ యోగము", "శ్రద్ధాత్రయవిభాగ యోగము", "మోక్షసన్న్యాస యోగము"]
+
 def chrome(reel, cfg):
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
@@ -164,7 +175,16 @@ def chrome(reel, cfg):
     d.text((64, 70), cfg.get("series_title", "శ్రీమద్భగవద్గీత"), font=tf, fill=GOLD)
     sub = font(SANS, 34, 500)
     tb = d.textbbox((64, 70), cfg.get("series_title", "శ్రీమద్భగవద్గీత"), font=tf)
-    d.text((68, tb[3] + 22), f"అధ్యాయం {reel['chapter']}", font=sub, fill=DIM)
+    names = cfg.get("chapter_names") or CHAPTER_NAMES
+    name = names[reel["chapter"] - 1] if 0 < reel["chapter"] <= len(names) else ""
+    head = f"అధ్యాయం {reel['chapter']}" + (" · " if name else "")
+    room = W - 50 - 300 - 68                     # up to the badge
+    size = 34
+    while size > 24 and tw(head, font(SANS, size, 500)) + tw(name, font(SANS, size, 600)) > room: size -= 1
+    y = tb[3] + 22
+    d.text((68, y), head, font=font(SANS, size, 500), fill=DIM)
+    if name:
+        d.text((68 + tw(head, font(SANS, size, 500)), y), name, font=font(SANS, size, 600), fill=GOLD)
     # badge top-right: serial + chapter.verse range
     nf, rf = font(SANS, 62, 800), font(SANS, 38, 600)
     serial, ref = f"#{reel['serial']}", reel["ref"]
@@ -466,7 +486,9 @@ def render_cover(reel, cfg, out_path):
 
 def captions(reel, cfg, book):
     ch = reel["chapter"]
-    parts = [f"🙏 శ్రీమద్భగవద్గీత #{reel['serial']} — అధ్యాయం {ch}, శ్లోకాలు {reel['ref']}"]
+    names = cfg.get("chapter_names") or CHAPTER_NAMES
+    cname = f" ({names[ch - 1]})" if 0 < ch <= len(names) else ""
+    parts = [f"🙏 శ్రీమద్భగవద్గీత #{reel['serial']} — అధ్యాయం {ch}{cname}, శ్లోకాలు {reel['ref']}"]
     for e in reel["entries"]:
         block = f"\n{entry_ref(ch, e)}\n" + ("" if not e.get("speaker") else e["speaker"] + "\n") + "\n".join(e["shloka"])
         block += f"\n\nఅనువాదము: {e['translation']}"
